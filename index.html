@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>写作人格测试 - Writing Archetype</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 字体引用：优先使用新细明体或系统衬线 */
+        :root {
+            --bg-color: #ffffff; 
+            --text-main: #000000; 
+            --text-sub: #666666;
+            --accent-color: #000000; 
+            --line-color: #e0e0e0;
+            --card-bg: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            /* 背景图导入：请确保图片文件名为 bg.jpg */
+            background-image: url('bg.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: "PMingLiU", "MingLiU", "Source Serif Pro", "Noto Serif SC", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 500px;
+            min-height: 80vh;
+            padding: 40px 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 封面样式 */
+        #cover-container { text-align: center; }
+        
+        .main-title { font-size: 3rem; font-weight: 400; letter-spacing: 12px; margin-bottom: 5px; text-shadow: 2px 2px 2px #8e8e8e; }
+        .sub-title-box { background: #000; color: #fff; display: inline-block; padding: 2px 10px; font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 30px; margin-top: 4px; margin-left: 200px; }
+        .slogan { color: var(--text-sub); font-size: 0.9rem; letter-spacing: 3px; border-top: 1px solid var(--line-color); border-bottom: 1px solid var(--line-color); padding: 15px 0; margin: 20px 0; }
+
+        /* 动态圆环容器 */
+        .circle-container {
+            width: 200px;
+            height: 200px;
+            margin: 40px auto;
+            position: relative;
+            /* 滤镜调用：实现扭曲抖动 */
+            filter: url(#wavy);
+        }
+        .dynamic-circle {
+            width: 100%;
+            height: 100%;
+            /* 图片导入：请确保圆环图片名为 circle.png */
+            background: url('circle.png') no-repeat center;
+            background-size: contain;
+            animation: rotateSlow 20s linear infinite;
+        }
+        @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .intro-text { font-size: 1rem; letter-spacing: 2px; line-height: 1.8; margin-top: 40px; }
+        .en-text { font-size: 0.6rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+        /* 输入框与按钮 */
+        .input-group { margin: 40px auto 20px; width: 200px; position: relative; }
+        .code-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #000;
+            background: transparent;
+            text-align: center;
+            padding: 10px 0;
+            font-family: inherit;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .start-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 15px 50px;
+            font-family: "STSong";
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+        .start-btn:hover { opacity: 0.8; transform: scale(1.05); }
+
+        /* 测试页样式 */
+        .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .back-link { font-size: 0.7rem; color: #999; cursor: pointer; }
+        .progress { font-size: 0.7rem; color: #ccc; }
+        .question-text { font-size: 1.1rem; margin-bottom: 40px; line-height: 1.8; text-align: justify; }
+        .option-btn { 
+            background: none; 
+            border: 1px solid #eee; 
+            padding: 18px 20px; 
+            text-align: left; 
+            cursor: pointer; 
+            font-family: inherit; 
+            margin-bottom: 15px; 
+            width: 100%;
+            transition: 0.2s;
+        }
+        .option-btn:hover { background: #f9f9f9; border-color: #000; }
+
+        /* 结果页样式 */
+        .result-header { text-align: center; margin-bottom: 40px; }
+        .archetype-name { font-size: 2.2rem; font-weight: 400; letter-spacing: 5px; margin: 15px 0; }
+        .label-tag { font-size: 0.75rem; background: #000; color: #fff; padding: 2px 10px; display: inline-block; margin-bottom: 10px; }
+        .desc-box { line-height: 1.8; color: #333; font-size: 0.95rem; margin-bottom: 30px; text-align: justify; }
+        .risk-section { line-height: 1.8; margin: 10px 0 40px 0; padding: 20px; background: #f5f5f5; border-left: 3px solid #000; }
+        .task-box { border: 1px dashed #bbb; padding: 20px; margin-top: 10px; line-height: 1.8; }
+        .footer-btns { text-align: center; margin-top: 50px; }
+        .restart-btn { background: #000; color: #fff; border: none; padding: 8px 20px; font-family: "STSong"; font-size: 0.8rem; cursor: pointer; letter-spacing: 2px; }
+
+        .copyright { font-size: 0.7rem; color: #ccc; margin-top: 80px; letter-spacing: 2px; }
+
+        /* SVG 滤镜隐藏区域 */
+        #svg-filter { position: absolute; width: 0; height: 0; }
+    </style>
+</head>
+<body>
+
+<svg id="svg-filter">
+    <defs>
+        <filter id="wavy">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" />
+            <animate xlink:href="#wavy" attributeName="baseFrequency" dur="10s" values="0.02;0.05;0.02" repeatCount="indefinite" />
+        </filter>
+    </defs>
+</svg>
+
+<div id="app">
+    <div id="cover-container">
+        <div class="main-title">写作人格</div>
+        <div class="sub-title-box">Writing Archetype</div>
+        <div class="slogan">十种人格类型 · 探寻属于你的创作方向</div>
+        
+        <div class="circle-container">
+            <div class="dynamic-circle"></div>
+        </div>
+
+        <div class="intro-text">
+            你是动情的独白者，抑或是传统的造梦家？
+            <div class="en-text">Are you the tender monologist, or the classic dream-maker?</div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="access-code" class="code-input" placeholder="输入兑换码……">
+        </div>
+        <button class="start-btn" onclick="checkAccess()">开启测试</button>
+
+        <div class="copyright">©2026 @dinosaurbones</div>
+    </div>
+
+    <div id="quiz-container" style="display: none;">
+        <div class="quiz-nav">
+            <span class="back-link" onclick="goBack()">BACK</span>
+            <div class="progress" id="progress">1 / 20</div>
+        </div>
+        <div id="question-area"></div>
+    </div>
+
+    <div id="result-container" style="display:none;">
+        <div class="result-header">
+            <span style="font-size:1rem; letter-spacing:2px; color:#999;">TEST REPORT</span>
+            <div class="archetype-name" id="archetype-title">正在生成...</div>
+        </div>
+
+        <canvas id="radarChart" style="margin-bottom: 40px;"></canvas>
+
+        <div class="label-tag">写作倾向</div>
+        <div class="desc-box" id="style-text"></div>
+
+        <div class="label-tag">风险提示</div>
+        <div class="risk-section" id="risk-text">
+            </div>
+
+        <div class="label-tag">创作题目推荐</div>
+        <div class="task-box">
+            <strong id="task-name" style="display:block; margin-bottom:5px; font-size:1.1rem;"></strong>
+            <span id="task-desc"></span>
+        </div>
+
+        <div class="footer-btns">
+            <button class="restart-btn" onclick="location.reload()">重启测试</button>
+            <div class="copyright" style="margin-top:40px;">©2026 @dinosaurbones</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 兑换码设置（你可以在这里修改）
+    const CORRECT_CODE = "dnb2026"; // 示例兑换码
+
+    function checkAccess() {
+        const input = document.getElementById('access-code').value.trim();
+        if (input === CORRECT_CODE || input === "123") { // 暂时多放一个123方便你调试
+            startQuiz();
+        } else {
+            alert("兑换码错误，请重新输入");
+        }
+    }
+
+    // 此处完整引用你提供的题目数据 (questions) 和 文案数据 (top2Data, bottom1Data, taskData)
+    // 为了篇幅，我保留了逻辑核心，你可以直接在下方粘贴你原来的数据数组
+    const questions = [
+        { q: "当你路过一座荒废已久的旧工厂，你的目光会停留在？", options: [
+            { t: "A、墙上残缺的标语，试图拼凑出它当年的某种信念。", scores: { X: 1 } },
+            { t: "B、窗台上的一颗野草，在生锈的铁架旁开得正旺。", scores: { X: 2 } },
+            { t: "C、估算占地面积，观察它的建造材料和结构。", scores: { X: 0 } },
+            { t: "D、想象自己是这工厂里的最后一个守夜人，写下那夜的日记。", scores: { X: 3, Z: 1 } }
+        ]},
+        { q: "如果让你记录过去，你更倾向于？", options: [
+            { t: "A、精准简练地总结，不带任何形容词的陈述。", scores: { X: 1 } },
+            { t: "B、撰写编年史，确保每个关键节点都准确无误。", scores: { X: 0 } },
+            { t: "C、截取其中最明亮或最暗淡的片段，仿佛涂抹。", scores: { X: 3 } },
+            { t: "D、追寻并分析导致现况的因果关系。", scores: { X: 2, L: 1 } }
+        ]},
+        { q: "当你读到一本小说的最后一页，你最希望看到？", options: [
+            { t: "A、所有伏笔都完美收合，给出确定的真相。", scores: { X: 0 } },
+            { t: "B、一个颠覆性的、让我重新理解故事的反转。", scores: { X: 3 } },
+            { t: "C、一段跨越数十年的后记，交代每个人最终的归宿。", scores: { X: 2 } },
+            { t: "D、一个开放式的、甚至有些荒诞的断点，戛然而止。", scores: { X: 1 } }
+        ]},
+        { q: "如果让你写一对男女的重逢，你会从哪里写起？", options: [
+            { t: "A、从他们多年前第一次离别时的那个雨天开始倒叙。", scores: { X: 3 } },
+            { t: "B、分析这种重逢在概率论上的微小可能。", scores: { X: 0 } },
+            { t: "C、直接写此时此刻，空气中那股尴尬而熟悉的香水味。", scores: { X: 2 } },
+            { t: "D、以第三视角描写看到他们重逢时，我内心涌起的酸楚。", scores: { X: 1, G: 1 } }
+        ]},
+        { q: "当你看到深秋日落时的暗紫色，你会如何给这个颜色起名？", options: [
+            { t: "A、编号 #4B0082。", scores: { W: 0, L: 1 } },
+            { t: "B、过期了的、发酵后的葡萄汁。", scores: { W: 1 } },
+            { t: "C、神灵在黄昏时流下的一滴血。", scores: { W: 3, X: 1 } },
+            { t: "D..某种正在消逝的、无法被定义的暗影。", scores: { W: 2 } }
+        ]},
+        { q: "你如何看待文章里的“形容词”？", options: [
+            { t: "A、它们是文字的累赘，能不用就坚决不用。", scores: { W: 0 } },
+            { t: "B、它们是必要的点缀，像宝石点亮黑暗。", scores: { W: 1 } },
+            { t: "C、它们是文字的灵魂，我迷恋那种层层堆砌的厚重感。", scores: { W: 3 } },
+            { t: "D、我更喜欢自创一些别人没见过的组合词。", scores: { W: 2, Z: 1 } }
+        ]},
+        { q: "关于“沉默”的同义词，你更钟意？", options: [
+            { t: "A、无声。", scores: { W: 0 } },
+            { t: "B、休止符。", scores: { W: 3 } },
+            { t: "C、窒息。", scores: { W: 2, G: 1 } },
+            { t: "D、空白。", scores: { W: 1 } }
+        ]},
+        { q: "描述一种“极端的寒冷”时，你会选择？", options: [
+            { t: "A、零下二十度。", scores: { W: 0 } },
+            { t: "B、冷得像针扎。", scores: { W: 1 } },
+            { t: "C、凛冽的银色利刃，正缓慢割开空气的喉咙。", scores: { W: 2 } },
+            { t: "D、一种足以让灵魂在瞬间结晶的绝望。", scores: { W: 3 } }
+        ]},
+        { q: "写日记时，你的潜意识读者是？", options: [
+            { t: "A、没有读者，这只是我与自己的低声密谈。", scores: { Z: 3 } },
+            { t: "B、未来的某个考古者，她在翻阅一段历史切片。", scores: { Z: 0 } },
+            { t: "C、一个懂我却不说话的影子。", scores: { Z: 1 } },
+            { t: "D、我自己，但我要用第三人称来写。", scores: { Z: 2 } }
+        ]},
+        { q: "当你在文字里提到“痛苦”，你倾向于？", options: [
+            { t: "A、赤裸地展示我的伤口，甚至让它流血。", scores: { Z: 3, G: 1 } },
+            { t: "B、描写一片被火烧过的森林，以此代指痛苦。", scores: { Z: 1, X: 1 } },
+            { t: "C、分析痛苦产生的心理机制和它对人的磨练。", scores: { Z: 0, L: 1 } },
+            { t: "D、不写痛苦，写痛苦消失后的那股释然或空虚。", scores: { Z: 2 } }
+        ]},
+        { q: "如果你的作品被评价为“主观性太强”，你的反应是？", options: [
+            { t: "A、暗自欣喜，这说明我无可替代。", scores: { Z: 3 } },
+            { t: "B、感到不安，我会尝试加入更多客观事实。", scores: { Z: 0 } },
+            { t: "C、无所谓，文字本来就是偏见的合集。", scores: { Z: 2 } },
+            { t: "D、反思是不是我的情感表达太直白了。", scores: { Z: 1 } }
+        ]},
+        { q: "在合影中，你最像哪一部分？", options: [
+            { t: "A、最中间那个表情生动的人。", scores: { Z: 2 } },
+            { t: "B、背景里那棵不起眼但完整的树。", scores: { Z: 3 } },
+            { t: "C..按下快门的那个不在场的人。", scores: { Z: 1 } },
+            { t: "D、被洗掉的、模糊的一个边缘。", scores: { Z: 0 } }
+        ]},
+        { q: "路过一场热闹的露天婚礼，人群都在欢呼，你此刻的感受是？", options: [
+            { t: "A、下意识地加入欢呼，被这种巨大的热量感染。", scores: { G: 1 } },
+            { t: "B、注意到新娘裙摆上的一处褶皱。", scores: { G: 3 } },
+            { t: "C、思考这种仪式的社会学意义和它的契约本质。", scores: { G: 0, L: 1 } },
+            { t: "D、突然想到如果下起雨来，一切会变成什么样。", scores: { G: 2, X: 1 } }
+        ]},
+        { q: "桌上有一块停止走动的旧表，你认为它的意义在于？", options: [
+            { t: "A..它凝固在了停下的那一秒，是时间的琥珀。", scores: { G: 2 } },
+            { t: "B、它为主人燃尽了生命。", scores: { G: 3 } },
+            { t: "C、它提醒我，所有的精密机械最终都会走向崩坏。", scores: { G: 1 } },
+            { t: "D、我正好需要一个安静的、不提醒我时间流逝的装饰。", scores: { G: 0 } }
+        ]},
+        { q: "如果文字有“颜色”，你希望你的作品是？", options: [
+            { t: "A、黑白素描，明暗关系明确。", scores: { G: 1 } },
+            { t: "B、同色系搭配，和谐一致。", scores: { G: 2 } },
+            { t: "C、饱和度极高，倾向运用对比色。", scores: { G: 3 } },
+            { t: "D、抓重点的速写，线条凌厉且清晰。", scores: { G: 0 } }
+        ]},
+        { q: "如果你的文章是一只打碎的瓷碗，你会如何处理那个缺口？", options: [
+            { t: "A、用金粉细心修补，让裂痕成为一种独特的装饰。", scores: { G: 3 } },
+            { t: "B、寻找一模一样的碎片，试图还原它最初的完整。", scores: { G: 0 } },
+            { t: "C、就让它碎在那里，记录下破碎那一瞬间的张力。", scores: { G: 2 } },
+            { t: "D、把剩余的碎片研磨成粉，彻底消解它的存在。", scores: { G: 1 } }
+        ]},
+        { q: "你如何开始一篇文章的构思？", options: [
+            { t: "A、先列详细的大纲，确保每一段都有它的功能。", scores: { L: 3 } },
+            { t: "B、先确定一个极具冲击力的句子，随它去哪里。", scores: { L: 1, Z: 1 } },
+            { t: "C、先想好结尾，然后再推导开头。", scores: { L: 2 } },
+            { t: "D、漫无目的地写，直到文字自己生长出来。", scores: { L: 0, G: 1 } }
+        ]},
+        { q: "对于“悖论”和“矛盾”，你的态度是？", options: [
+            { t: "A、必须解决它，逻辑不通会让我在深夜焦虑。", scores: { L: 3 } },
+            { t: "B、迷恋它，它是世界最真实、最迷幻的样子。", scores: { L: 1 } },
+            { t: "C、创造一个更高级的逻辑去包容它。", scores: { L: 2, Z: 1 } },
+            { t: "D、不予理会，文字只需要美，不需要对。", scores: { L: 0 } }
+        ]},
+        { q: "当你在文章中使用“因为……所以……”时：", options: [
+            { t: "A、我是在进行严密的论证。", scores: { L: 3 } },
+            { t: "B、我只是想给混乱的剧情找个借口。", scores: { L: 0 } },
+            { t: "C、我很少用这些词，我更喜欢用“也许”。", scores: { L: 1 } },
+            { t: "D、我会在结论处反转这个逻辑。", scores: { L: 2 } }
+        ]},
+        { q: "如果人生是一本书，你认为它的核心是？", options: [
+            { t: "A、一套复杂的运行算法，每一个变量都有迹可循。", scores: { L: 3 } },
+            { t: "B、一出没有彩排的荒诞剧，全看临场发挥。", scores: { L: 0, X: 1 } },
+            { t: "C、一段寻找自我闭环的旅程。", scores: { L: 2 } },
+            { t: "D、一首写给无常的长诗。", scores: { L: 1 } }
+        ]}
+    ];
+
+    const top2Data = {
+        "GW": { name: "细腻的画匠", desc: "你天生对文字的浓度有着近乎偏执的追求。文学应当是一场感官的盛宴，你热衷于捕捉那些转瞬即逝的光影、气味与肤感，偏爱用层层堆砌的瑰丽修辞将其固化。对你而言，书写不是为了说明什么，而是为了让某种情绪在词语的色彩中达到饱和。" },
+        "GX": { name: "浪漫的诗人", desc: "你趋向在时间流逝中打捞诗意，博爱地关注宏大时空之下个体的命运，热衷构建那些带有宿命感的故事瞬间。比起文字的雕琢，你更在意情感的流动，力求让叙事成为角色人物的一场长途跋涉，赋予灵魂最珍贵的体验。" },
+        "GZ": { name: "赤诚的自燃者", desc: "你热衷于一种「近身肉搏」式的书写，撤掉所有美学盾牌，直面最隐秘的自我。在你的文学世界里，真诚高于一切技巧。你直觉地排斥自由的虚构世界，将笔尖刺入心灵的深处，在痛感与灼烧中证明自己的存在。" },
+        "GL": { name: "矛盾的炼金术士", desc: "你迷恋一种理智与情感高度对撞的张力，倾向于在沸腾的情绪中加入冰冷的审视，喜欢用智性的框架去约束喷涌的感性。这种「带电」的平衡感是你的审美内核：你既渴望情感的极致共振，又执着于在逻辑的冷光下解剖这些瞬间。" },
+        "WX": { name: "传统的造梦家", desc: "你或许擅长创造一种古典且庄严的文学秩序，偏好构建宏大的叙事架构，并认为完美的修辞是通往真理的唯一路径。在你笔下，世界应当被重新赋予绸缎般的质感与严丝合缝的逻辑，你倾向于做那个优雅的造梦人。" },
+        "WZ": { name: "华丽的隐士", desc: "你将文字作为自我的避难所，热衷于修筑一座位于高山且华丽的碉堡。在你的审美里，文字不需要向大众妥协，它应当是极致私人且极尽修饰的。你喜欢在复杂的隐喻中藏匿真实的自己，享受只有同类才能破解的孤独感。" },
+        "LW": { name: "执着的建筑师", desc: "你对文字的秩序感与零件美学有着天然的迷恋。你钟情于打磨每一个词语的准确度，将文本视为一件精密的艺术品。在你的评判体系里，文字的美感来源于逻辑的严密与修辞的得体，你享受那种将灵感严丝合缝地拼接成整体的快感。" },
+        "XZ": { name: "动情的独白者", desc: "你倾向于以「我」为原点去打量这个世界，在漫长的叙事中植入深情的私语，认为只有带有个人温度的记忆才值得被记载。你致力追求将「个人史」史诗化，在时间的荒野里发出孤独的呐喊。" },
+        "LX": { name: "冷静的因果论者", desc: "你会站在「上帝视角」去俯瞰人间的因果脉络，善于拆解命运的精密发条，直觉地偏好那些简洁有力，且富有逻辑支撑的叙述。你倾向在文本中保持一种秩序感，选择观察规律而非沉溺情绪。" },
+        "LZ": { name: "孤独的思辨家", desc: "你习惯将创作视为一场高难度的智力辩论，在文字里建立哲学实验室，用冷静的逻辑去摸索自我的边界。在你的审美标准里，文学的最高价值在于洞察而非煽情，你致力于追求那个冰冷但绝对纯粹的真理。" }
+    };
+
+    const bottom1Data = {
+        "L": "然而，你对理性的过度介入持有一定的警惕。你倾向于保护灵感最初那份混乱的张力，让它们在碎片化的思绪中游荡，而不愿让冰冷的逻辑骨架磨损掉文字的灵气。这或许会使得你的创作呈现出一种迷人的散漫。",
+        "W": "然而，你会选择剥离所有不必要的修饰，直击事物的核心。你对华丽的词藻持有一种不信任感，喜欢用最赤裸、最硬朗的笔触去记录真实。你认为，朴素本身就是一种极具力量的修辞。",
+        "Z": "然而，你执着地将「自我」从叙述中温柔地隐去。你对过度的私人表达持有某种洁癖，善于观察他者、构建万物，却唯独不愿在文字里留下太重的个人痕迹。这可能会让你的作品拥有一种宽广的客观感。",
+        "G": "然而，你偏向在文字中保持一种理性的克制与清醒。你对无节制的情感宣泄持有怀疑，热衷于用智性去包裹痛苦，而非放任其泛滥。这种疏离感也许会让你的文字更具冰冷的气质。",
+        "X": "然而，你对那种大而全的宏大叙事缺乏热忱。你更倾向于在微观的瞬间或局部的灵感上深耕，认为一个精准意象胜过一万字的漫长铺陈。这或许会让你的创作呈现出一种精致的截面美学。"
+    };
+
+    const taskData = {
+        "GW": { n: "《香味》", d: "你在公交站等车，闻到一阵逐渐浓郁的香味。" },
+        "GX": { n: "《滑滑梯》", d: "你在公园里看见孩童在玩滑滑梯，回忆起了一段童年往事。" },
+        "GZ": { n: "《剥洋葱日记》", d: "记录一次你试图欺骗自己的经历，每一层都要剥开一个更令你感到不安的真相。" },
+        "GL": { n: "《情绪报告》", d: "用逻辑严密的报告形式（包含时间、状态等），记录一段让你彻底丧失理智的情感爆发过程。" },
+        "WX": { n: "《古董店的记忆》", d: "描写一件被遗忘在角落的器物，并以该器物的视角叙述它见证过的某个事件。" },
+        "WZ": { n: "《私人博物馆》", d: "如果你的记忆是一间博物馆，请为其中一件美丽却私密的“展品”写一段导览词。" },
+        "LW": { n: "《解剖》", d: "观察一个普通的日常动作（如倒茶），用细致的、诗化的描述重组这个瞬间。" },
+        "XZ": { n: "《信》", d: "给另一个选择了完全不同人生的自己写信，并在信中植入一个只有你们懂的隐喻。" },
+        "LX": { n: "《命运》", d: "描写人生中一次重大的失败，但必须通过寻找五个看似无关的偶然细节来证明它是必然的。" },
+        "LZ": { n: "《格子空间》", d: "你在混沌的梦境醒来，面对不断变换的时空，试图推导出一个自洽的物理定律。" }
+    };
+
+    let currentStep = 0;
+    let userScores = { X: 0, Z: 0, W: 0, G: 0, L: 0 };
+    let historyStack = [];
+
+    function startQuiz() {
+        document.getElementById('cover-container').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        renderQuestion();
+    }
+
+    function goBack() {
+        if (currentStep > 0) {
+            currentStep--;
+            const lastScore = historyStack.pop();
+            for (let dim in lastScore) { userScores[dim] -= lastScore[dim]; }
+            renderQuestion();
+        } else {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('cover-container').style.display = 'block';
+        }
+    }
+
+    function renderQuestion() {
+        const questionArea = document.getElementById('question-area');
+        const q = questions[currentStep];
+        document.getElementById('progress').innerText = `${currentStep + 1} / ${questions.length}`;
+        let html = `<div class="question-text">${q.q}</div>`;
+        q.options.forEach((opt, index) => {
+            html += `<button class="option-btn" onclick="handleSelect(${index})">${opt.t}</button>`;
+        });
+        questionArea.innerHTML = html;
+    }
+
+    function handleSelect(index) {
+        const scores = questions[currentStep].options[index].scores;
+        historyStack.push(JSON.parse(JSON.stringify(scores)));
+        for (let dim in scores) { userScores[dim] += scores[dim]; }
+        currentStep++;
+        if (currentStep < questions.length) { renderQuestion(); } else { showResult(); }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('result-container').style.display = 'block';
+
+        const finalScores = { X: userScores.X, Z: userScores.Z, W: userScores.W * 1.5, G: userScores.G, L: userScores.L };
+        const rawValues = [finalScores.X, finalScores.Z, finalScores.W, finalScores.G, finalScores.L];
+        const total = rawValues.reduce((a, b) => a + b, 0) || 1;
+        const relativeData = rawValues.map(v => (v / total) * 100);
+
+        const sortedDims = Object.keys(finalScores).sort((a, b) => finalScores[b] - finalScores[a]);
+        const t1 = sortedDims[0], t2 = sortedDims[1], b1 = sortedDims[4];
+        const key = [t1, t2].sort().join('');
+        const archetype = top2Data[key] || { name: "多维探索者", desc: "你的文学特质呈现出罕见的多维平衡。" };
+
+        document.getElementById('archetype-title').innerText = `【${archetype.name}】`;
+        document.getElementById('style-text').innerText = archetype.desc + "\n\n" + (bottom1Data[b1] || "");
+        
+        const task = taskData[key] || taskData["GW"]; 
+        document.getElementById('task-name').innerText = task.n;
+        document.getElementById('task-desc').innerText = task.d;
+
+            // 风险提示文案自动判定逻辑
+    const RISK_MESSAGES = {
+        'G': '• 你可能习惯解释感受，而不是呈现感受。<br>• 切勿让读者停留在理性思考层面。',
+        'L': '• 你可能依赖直觉写作，表达会显得跳跃或混乱。<br>• 切勿过度沉溺情绪，无法自拔。',
+        'Z': '• 你可能擅长分析他人，却甚少暴露自身。<br>• 切勿压抑自己的声音。',
+        'X': '• 你可能在单句或段落的描写上有力量，但缺少骨架。<br>• 切勿忽略故事的发展与转折。',
+        'W': '• 你可能表达精准，但难以让读者产生情感共鸣。<br>• 切勿把文字单纯地当作传达信息的工具。'
+    };
+
+    // 获取得分最低的维度字母 (b1)
+    const lowLabelMap = { 'G': '感性', 'L': '理性', 'Z': '自我', 'X': '叙事', 'W': '辞藻' };
+    const riskContent = RISK_MESSAGES[b1] || "保持现状，继续创作。";
+    
+    document.getElementById('risk-text').innerHTML = riskContent;
+
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['叙事厚度', '自我投射', '辞藻层次', '感性阈值', '逻辑密度'],
+                datasets: [{
+                    data: relativeData,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderColor: '#000',
+                    pointBackgroundColor: '#000',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        ticks: { display: false },
+                        grid: { color: '#eee' },
+                        angleLines: { color: '#eee' },
+                        pointLabels: { font: { size: 10, family: 'serif' } }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+</body>
+</html>
