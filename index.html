@@ -143,6 +143,19 @@
         .desc-box { line-height: 1.8; color: #333; font-size: 0.95rem; margin-bottom: 30px; text-align: justify; }
         .risk-section { line-height: 1.8; margin: 10px 0 40px 0; font-size: 0.95rem; padding: 20px; background: #f5f5f5; border-left: 3px solid #000; }
         .task-box { border: 1px dashed #bbb; font-size: 0.95rem; padding: 20px; margin-top: 10px; line-height: 1.8; }
+        #risk-text div {
+           position: relative;
+           padding-left: 1.2em;
+           margin-bottom: 8px;
+           line-height: 1.6;
+           text-align: justify;
+        }
+#risk-text div::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #000;
+}
         .footer-btns {
     display: flex;            /* 开启弹性布局 */
     justify-content: space-between; /* 重点：让两个按钮分别靠向最左和最右 */
@@ -498,11 +511,11 @@
 
             // 风险提示文案自动判定逻辑
     const RISK_MESSAGES = {
-        'G': '• 你可能习惯解释感受，而不是呈现感受。<br>• 切勿让读者停留在理性思考层面。',
-        'L': '• 你可能依赖直觉写作，表达会显得跳跃或混乱。<br>• 切勿过度沉溺情绪，无法自拔。',
-        'Z': '• 你可能擅长分析他人，却甚少暴露自身。<br>• 切勿压抑自己的声音。',
-        'X': '• 你可能在单句或段落的描写上有力量，但缺少骨架。<br>• 切勿忽略故事的发展与转折。',
-        'W': '• 你可能表达精准，但难以让读者产生情感共鸣。<br>• 切勿把文字单纯地当作传达信息的工具。'
+        'G': '<div>你可能习惯解释感受，而不是呈现感受。</div><div>切勿让读者停留在理性思考层面。',
+        'L': '<div>你可能依赖直觉写作，表达会显得跳跃或混乱。</div><div>切勿过度沉溺情绪，无法自拔。',
+        'Z': '<div>你可能擅长分析他人，却甚少暴露自身。</div><div>切勿压抑自己的声音。',
+        'X': '<div>你可能在单句或段落的描写上有力量，但缺少骨架。</div><div>切勿忽略故事的发展与转折。',
+        'W': '<div>你可能表达精准，但难以让读者产生情感共鸣。</div><div>切勿把文字单纯地当作传达信息的工具。'
     };
 
     // 获取得分最低的维度字母 (b1)
@@ -556,3 +569,5 @@
 </script>
 </body>
 </html>
+
+
