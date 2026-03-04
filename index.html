@@ -559,19 +559,25 @@
         backgroundColor: "#fff", // 确保截图背景是白色的，方便保存
         scale: 2,               // 提升清晰度，方便手机查看
         useCORS: true           // 允许加载跨域字体（如 Noto Serif）
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-const newWindow = window.open();
-if (newWindow) {
-    newWindow.document.write(`< img src="${imgData}" style="width:100%;">`);
-    newWindow.document.write('<p style="text-align:center;">长按上方图片保存到相册</p >');
-} else {
-    // 如果被浏览器拦截了弹窗，就用这个保底方案
-    alert("请直接手机截屏保存结果页面");
-}
-    });
+   }).then(canvas => {
+    canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '我的写作人格测试结果.png'; //
+        
+        // 关键：必须把 link 挂载到 body 上，某些浏览器才允许模拟点击
+        document.body.appendChild(link);
+        link.click();
+        
+        // 点击完立刻移除，保持页面干净
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url); 
+    }, 'image/png');
+});
 }
 </script>
 </body>
 </html>
+
 
