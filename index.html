@@ -200,6 +200,12 @@
 
         /* SVG 滤镜隐藏区域 */
         #svg-filter { position: absolute; width: 0; height: 0; }
+
+        #result-container {
+    padding: 30px 25px !important; /* 这样截图出来的图片四周才会有呼吸感 */
+    background: var(--card-bg);
+    backdrop-filter: blur(1.8px);
+}
     </style>
 </head>
 <body>
@@ -559,7 +565,7 @@
         backgroundColor: "#fff", // 确保截图背景是白色的，方便保存
         scale: 2,               // 提升清晰度，方便手机查看
         useCORS: true           // 允许加载跨域字体（如 Noto Serif）
-  }).then(canvas => {
+   }).then(canvas => {
     canvas.toBlob(function(blob) {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -578,6 +584,3 @@
 </script>
 </body>
 </html>
-
-
-
